@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-querystring/query"
 
-	"wattx/top/packages/config"
+	"wattx/cctop/packages/config"
 )
 
 const (

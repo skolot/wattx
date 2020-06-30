@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"wattx/top/packages/config"
-	"wattx/top/packages/httpsrv"
+	"wattx/cctop/packages/config"
+	"wattx/cctop/packages/httpsrv"
 )
 
 func main() {

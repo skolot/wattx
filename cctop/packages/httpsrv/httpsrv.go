@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"wattx/top/packages/api"
-	"wattx/top/packages/config"
+	"wattx/cctop/packages/api"
+	"wattx/cctop/packages/config"
 )
 
 const (

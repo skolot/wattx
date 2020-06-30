@@ -1,4 +1,4 @@
-module wattx/top
+module wattx/cctop
 
 go 1.14
 
