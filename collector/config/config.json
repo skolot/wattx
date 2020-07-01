@@ -1,0 +1,15 @@
+{
+	"api": {
+		"currency": "USD",
+		"topURL": "http://localhost:2323",
+		"priceURL": "http://localhost:2424",
+		"top": 200,
+		"limit": 100,
+		"currency": "USD",
+		"timeout": "5s"
+	},
+	"httpsrv": {
+		"host": "localhost",
+		"port": 2525
+	}
+}
