@@ -10,7 +10,7 @@ import (
 func main() {
 	conf, err := config.Read()
 	if err != nil {
-		log.Println("Error: config")
+		log.Println("Error: config: ", err)
 	}
 
 	httpsrv.Start(conf)
