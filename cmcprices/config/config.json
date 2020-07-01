@@ -1,0 +1,12 @@
+{
+	"api": {
+		"url": "https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest",
+		"key": "f6726403-9ec5-44fe-870f-a19cdd58e37d",
+		"currency": "USD",
+		"timeout": "5s"
+	},
+	"httpsrv": {
+		"host": "localhost",
+		"port": 2424
+	}
+}
