@@ -31,7 +31,9 @@ func Request(opts TopRequest, conf config.Config) ([]CoinInfo, error) {
 		return nil, err
 	}
 
-	return parseResp(data)
+	rankShift := opts.Page * opts.Limit
+
+	return parseResp(data, rankShift)
 }
 
 func toQuery(opts interface{}) (string, error) {
@@ -57,7 +59,7 @@ func doGetReq(url string, timeout time.Duration) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func parseResp(data []byte) ([]CoinInfo, error) {
+func parseResp(data []byte, rankShift int) ([]CoinInfo, error) {
 
 	log.Printf("data: %s\n", data)
 
@@ -77,7 +79,7 @@ func parseResp(data []byte) ([]CoinInfo, error) {
 
 	ranked := []CoinInfo{}
 	for i, d := range ciData {
-		d.CoinInfo.Rank = i + 1
+		d.CoinInfo.Rank = i + 1 + rankShift
 		ranked = append(ranked, d.CoinInfo)
 	}
 
