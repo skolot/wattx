@@ -1,0 +1,43 @@
+version: "3.7"
+services:
+
+    cctop:
+        build:
+            context: ./cctop
+            dockerfile: ../Dockerfile
+        ports:
+            - "127.0.0.1:2323:2323"
+        expose:
+            - "2323"
+        environment:
+            - CONFIGOR_HTTPSRV_HOST=0.0.0.0
+
+    cmcprices:
+        build:
+            context: ./cmcprices
+            dockerfile: ../Dockerfile
+        ports:
+            - "127.0.0.1:2424:2424"
+        expose:
+            - "2424"
+        environment:
+            - CONFIGOR_HTTPSRV_HOST=0.0.0.0
+
+    collector:
+        build:
+            context: ./collector
+            dockerfile: ../Dockerfile
+        ports:
+            - "127.0.0.1:2525:2525"
+        expose:
+            - "2525"
+        environment:
+            - CONFIGOR_HTTPSRV_HOST=0.0.0.0
+            - CONFIGOR_API_TOPURL=http://cctop:2323
+            - CONFIGOR_API_PRICEURL=http://cmcprices:2424
+        depends_on:
+            - cctop
+            - cmcprices
+        links:
+            - "cctop:127.0.0.1"
+            - "cmcprices:127.0.0.1"
