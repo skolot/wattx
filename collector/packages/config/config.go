@@ -11,8 +11,8 @@ type API struct {
 	PriceURL        string
 	Timeout         string
 	TimeoutDuration time.Duration
-	Top             int
 	Limit           int
+	RequestSize     int
 	Currency        string
 }
 

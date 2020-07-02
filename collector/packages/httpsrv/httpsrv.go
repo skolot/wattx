@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	formatQuery string = "format"
+	queryFormat string = "format"
+	queryLimit  string = "limit"
 )
 
 func Start(conf config.Config) error {
@@ -28,12 +29,18 @@ func Start(conf config.Config) error {
 func rootHandler(conf config.Config, w http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 
-	format := q.Get(formatQuery)
+	format := q.Get(queryFormat)
 	if format == "" {
 		format = defaultFormat
 	}
 
-	data, err := api.RequestAllData(conf)
+	limit, err := safeAtoI(q.Get(queryLimit), conf.API.Limit)
+	if err != nil {
+		reportErr(w, err)
+		return
+	}
+
+	data, err := api.RequestAllData(limit, conf)
 	if err != nil {
 		reportErr(w, err)
 		return
@@ -43,6 +50,14 @@ func rootHandler(conf config.Config, w http.ResponseWriter, req *http.Request) {
 		reportErr(w, err)
 		return
 	}
+}
+
+func safeAtoI(a string, def int) (int, error) {
+	if a == "" {
+		return def, nil
+	}
+
+	return strconv.Atoi(a)
 }
 
 func reportErr(w http.ResponseWriter, err error) {

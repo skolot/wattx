@@ -1,9 +1,5 @@
 package api
 
-type ErrorResponse struct {
-	Error string `json:"Error"`
-}
-
 type RankRequest struct {
 	Limit int    `url:"limit"`
 	Page  int    `url:"page"`

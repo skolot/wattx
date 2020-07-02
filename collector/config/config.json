@@ -3,8 +3,8 @@
 		"currency": "USD",
 		"topURL": "http://localhost:2323",
 		"priceURL": "http://localhost:2424",
-		"top": 200,
-		"limit": 100,
+		"limit": 200,
+		"requestSize": 100,
 		"currency": "USD",
 		"timeout": "5s"
 	},

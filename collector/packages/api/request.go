@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -26,19 +27,23 @@ const (
 	queryConvert string = "convert"
 )
 
-func RequestAllData(conf config.Config) ([]Data, error) {
+func RequestAllData(limit int, conf config.Config) ([]Data, error) {
 	data := []Data{}
 
-	limit := conf.API.Limit
-	if limit > conf.API.Top {
-		limit = conf.API.Top
+	if limit <= 0 {
+		limit = conf.API.Limit
 	}
 
-	pages := conf.API.Top / limit
+	requestSize := conf.API.RequestSize
+	if requestSize > limit {
+		requestSize = limit
+	}
+
+	pages := limit / requestSize
 
 	for page := 0; page < pages; page++ {
 		rrOpts := RankRequest{
-			Limit: limit,
+			Limit: requestSize,
 			Page:  page,
 			TSYM:  conf.API.Currency,
 		}
@@ -161,12 +166,7 @@ func parsePriceResp(data []byte) (PriceResponse, error) {
 }
 
 func parseErrorResp(data []byte) error {
-	resp := ErrorResponse{}
-	if err := json.Unmarshal(data, &resp); err != nil {
-		return err
-	}
-
-	return errors.New(resp.Error)
+	return errors.New(bytes.NewBuffer(data).String())
 }
 
 func getSymbols(rankData []RankResponse) []string {
