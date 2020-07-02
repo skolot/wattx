@@ -1,8 +1,8 @@
 package api
 
 type PriceRequest struct {
-	Symbol  string `url:"symbol"`
-	Convert string `url:"convert"`
+	Symbol  []string `url:"symbol"`
+	Convert []string `url:"convert"`
 }
 
 type Status struct {

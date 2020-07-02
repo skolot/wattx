@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
-
-	"github.com/google/go-querystring/query"
 
 	"wattx/cctop/packages/config"
 )
@@ -16,16 +16,14 @@ import (
 const (
 	apiAuthHeader string = "authorization"
 	respError     string = "Error"
+
+	queryLimit string = "limit"
+	queryPage  string = "page"
+	queryTSYM  string = "tsym"
 )
 
 func Request(opts TopRequest, conf config.Config) ([]CoinInfo, error) {
-
-	query, err := toQuery(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	url := conf.API.URL + "?" + query
+	url := conf.API.URL + "?" + toQuery(opts)
 	data, err := doGetReq(url, conf.API.TimeoutDuration)
 	if err != nil {
 		return nil, err
@@ -36,13 +34,13 @@ func Request(opts TopRequest, conf config.Config) ([]CoinInfo, error) {
 	return parseResp(data, rankShift)
 }
 
-func toQuery(opts interface{}) (string, error) {
-	q, err := query.Values(opts)
-	if err != nil {
-		return "", err
-	}
+func toQuery(opts TopRequest) string {
+	query := url.Values{}
+	query.Add(queryLimit, strconv.Itoa(opts.Limit))
+	query.Add(queryPage, strconv.Itoa(opts.Page))
+	query.Add(queryTSYM, opts.TSYM)
 
-	return q.Encode(), nil
+	return query.Encode()
 }
 
 func doGetReq(url string, timeout time.Duration) ([]byte, error) {
@@ -60,9 +58,6 @@ func doGetReq(url string, timeout time.Duration) ([]byte, error) {
 }
 
 func parseResp(data []byte, rankShift int) ([]CoinInfo, error) {
-
-	log.Printf("data: %s\n", data)
-
 	resp := TopResponse{}
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return nil, err
@@ -82,6 +77,8 @@ func parseResp(data []byte, rankShift int) ([]CoinInfo, error) {
 		d.CoinInfo.Rank = i + 1 + rankShift
 		ranked = append(ranked, d.CoinInfo)
 	}
+
+	log.Printf("ranked: %+v\n", ranked)
 
 	return ranked, nil
 }

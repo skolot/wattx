@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
-
-	"github.com/google/go-querystring/query"
 
 	"wattx/collector/packages/config"
 )
@@ -17,6 +17,13 @@ import (
 const (
 	apiAuthHeader string = "authorization"
 	respError     string = "Error"
+
+	queryLimit string = "limit"
+	queryPage  string = "page"
+	queryTSYM  string = "tsym"
+
+	querySymbol  string = "symbol"
+	queryConvert string = "convert"
 )
 
 func RequestAllData(conf config.Config) ([]Data, error) {
@@ -43,7 +50,7 @@ func RequestAllData(conf config.Config) ([]Data, error) {
 
 		prOpts := PriceRequest{
 			Symbol:  getSymbols(rdata),
-			Convert: conf.API.Currency,
+			Convert: []string{conf.API.Currency},
 		}
 
 		pdata, err := RequestPrice(prOpts, conf)
@@ -58,7 +65,13 @@ func RequestAllData(conf config.Config) ([]Data, error) {
 }
 
 func RequestPrice(opts PriceRequest, conf config.Config) (PriceResponse, error) {
-	data, err := Request(opts, conf.API.PriceURL, conf)
+	query := url.Values{}
+	query.Add(querySymbol, strings.Join(opts.Symbol, ","))
+	query.Add(queryConvert, strings.Join(opts.Convert, ","))
+
+	log.Printf("conf.API.PriceURL ? query.Encode(): %s\n", conf.API.PriceURL+"?"+query.Encode())
+
+	data, err := Request(opts, conf.API.PriceURL+"?"+query.Encode(), conf)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +80,12 @@ func RequestPrice(opts PriceRequest, conf config.Config) (PriceResponse, error) 
 }
 
 func RequestRank(opts RankRequest, conf config.Config) ([]RankResponse, error) {
-	data, err := Request(opts, conf.API.TopURL, conf)
+	query := url.Values{}
+	query.Add(queryLimit, strconv.Itoa(opts.Limit))
+	query.Add(queryPage, strconv.Itoa(opts.Page))
+	query.Add(queryTSYM, opts.TSYM)
+
+	data, err := Request(opts, conf.API.TopURL+"?"+query.Encode(), conf)
 	if err != nil {
 		return nil, err
 	}
@@ -75,16 +93,7 @@ func RequestRank(opts RankRequest, conf config.Config) ([]RankResponse, error) {
 	return parseRankResp(data)
 }
 
-func Request(opts interface{}, basURL string, conf config.Config) ([]byte, error) {
-	query, err := toQuery(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	url := basURL + "?" + query
-
-	log.Printf("url: %s\n", url)
-
+func Request(opts interface{}, url string, conf config.Config) ([]byte, error) {
 	data, statusCode, err := doGetReq(url, conf.API.TimeoutDuration)
 	if err != nil {
 		return nil, err
@@ -101,15 +110,6 @@ func Request(opts interface{}, basURL string, conf config.Config) ([]byte, error
 	}
 
 	return data, nil
-}
-
-func toQuery(opts interface{}) (string, error) {
-	q, err := query.Values(opts)
-	if err != nil {
-		return "", err
-	}
-
-	return q.Encode(), nil
 }
 
 func doGetReq(url string, timeout time.Duration) ([]byte, int, error) {

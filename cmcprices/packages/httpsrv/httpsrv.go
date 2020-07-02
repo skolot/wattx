@@ -6,14 +6,15 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"wattx/cmcprices/packages/api"
 	"wattx/cmcprices/packages/config"
 )
 
 const (
-	symbolQuery   string = "symbol"
-	currencyQuery string = "currency"
+	querySymbol string = "symbol"
+	querConvert string = "convert"
 )
 
 func Start(conf config.Config) error {
@@ -31,20 +32,22 @@ func Start(conf config.Config) error {
 func rootHandler(conf config.Config, w http.ResponseWriter, req *http.Request) {
 	q := req.URL.Query()
 
-	symbol := q.Get(symbolQuery)
+	log.Printf("req.URL.Query(): %+v\n", req.URL.Query())
+
+	symbol := q.Get(querySymbol)
 	if symbol == "" {
 		reportErr(w, errors.New("symbol is required"))
 		return
 	}
 
-	currency := q.Get(currencyQuery)
-	if currency == "" {
-		currency = conf.API.Currency
+	convert := strings.Split(q.Get(querConvert), ",")
+	if len(convert) == 0 {
+		convert = []string{conf.API.Currency}
 	}
 
 	ops := api.PriceRequest{
-		Symbol:  symbol,
-		Convert: currency,
+		Symbol:  strings.Split(symbol, ","),
+		Convert: convert,
 	}
 
 	data, err := api.Request(ops, conf)
@@ -60,7 +63,7 @@ func rootHandler(conf config.Config, w http.ResponseWriter, req *http.Request) {
 }
 
 func reportErr(w http.ResponseWriter, err error) {
-	log.Println("Error: Price Handler: " + err.Error())
+	log.Println("Error: Price: " + err.Error())
 
 	http.Error(w, err.Error(), http.StatusBadRequest)
 }

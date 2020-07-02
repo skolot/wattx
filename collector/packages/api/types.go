@@ -18,7 +18,7 @@ type RankResponse struct {
 
 type PriceRequest struct {
 	Symbol  []string `url:"symbol"`
-	Convert string   `url:"convert"`
+	Convert []string `url:"convert"`
 }
 
 type PriceResponse map[string]map[string]float32

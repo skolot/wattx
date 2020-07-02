@@ -5,23 +5,21 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
+	"net/url"
+	"strings"
 
 	"wattx/cmcprices/packages/config"
 )
 
 const (
 	apiAuthHeader string = "X-CMC_PRO_API_KEY"
+
+	querySymbol  string = "symbol"
+	queryConvert string = "convert"
 )
 
 func Request(opts PriceRequest, conf config.Config) (PriceData, error) {
-	query, err := toQuery(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	url := conf.API.URL + "?" + query
+	url := conf.API.URL + "?" + toQuery(opts)
 	data, err := doGetReq(url, conf)
 	if err != nil {
 		return nil, err
@@ -30,13 +28,12 @@ func Request(opts PriceRequest, conf config.Config) (PriceData, error) {
 	return parseResp(data)
 }
 
-func toQuery(opts interface{}) (string, error) {
-	q, err := query.Values(opts)
-	if err != nil {
-		return "", err
-	}
+func toQuery(opts PriceRequest) string {
+	query := url.Values{}
+	query.Add(querySymbol, strings.Join(opts.Symbol, ","))
+	query.Add(queryConvert, strings.Join(opts.Convert, ","))
 
-	return q.Encode(), nil
+	return query.Encode()
 }
 
 func doGetReq(url string, conf config.Config) ([]byte, error) {
