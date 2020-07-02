@@ -24,6 +24,7 @@ const (
 
 func Request(opts TopRequest, conf config.Config) ([]CoinInfo, error) {
 	url := conf.API.URL + "?" + toQuery(opts)
+	log.Printf("rank request url: %s\n", url)
 	data, err := doGetReq(url, conf.API.TimeoutDuration)
 	if err != nil {
 		return nil, err
@@ -31,7 +32,11 @@ func Request(opts TopRequest, conf config.Config) ([]CoinInfo, error) {
 
 	rankShift := opts.Page * opts.Limit
 
-	return parseResp(data, rankShift)
+	rankData, err := parseResp(data, rankShift)
+
+	log.Printf("rank response: %+v\n", rankData)
+
+	return rankData, err
 }
 
 func toQuery(opts TopRequest) string {
@@ -77,8 +82,6 @@ func parseResp(data []byte, rankShift int) ([]CoinInfo, error) {
 		d.CoinInfo.Rank = i + 1 + rankShift
 		ranked = append(ranked, d.CoinInfo)
 	}
-
-	log.Printf("ranked: %+v\n", ranked)
 
 	return ranked, nil
 }
