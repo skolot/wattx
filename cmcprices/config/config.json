@@ -1,7 +1,7 @@
 {
 	"api": {
-		"url": "https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest",
-		"key": "f6726403-9ec5-44fe-870f-a19cdd58e37d",
+		"url": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest",
+		"key": "dcd45a22-fe0e-4469-8e4e-0337b5313c6e",
 		"currency": "USD",
 		"timeout": "5s"
 	},
@@ -10,3 +10,4 @@
 		"port": 2424
 	}
 }
+
