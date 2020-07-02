@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"wattx/cmcprices/packages/config"
 )
@@ -16,16 +18,43 @@ const (
 
 	querySymbol  string = "symbol"
 	queryConvert string = "convert"
+
+	retriesCount int           = 5
+	retryTimeout time.Duration = 100 * time.Millisecond
+
+	invalidSymbolsErrorPrefix string = "Invalid values for \"symbol\": \""
+	invalidSymbolsErrorSuffix string = "\""
 )
 
 func Request(opts PriceRequest, conf config.Config) (PriceData, error) {
-	url := conf.API.URL + "?" + toQuery(opts)
-	data, err := doGetReq(url, conf)
-	if err != nil {
-		return nil, err
+	opts0 := opts
+
+	for try := 0; try < retriesCount; try++ {
+		url := conf.API.URL + "?" + toQuery(opts0)
+		log.Printf("price request url: %s\n", url)
+
+		data, err := doGetReq(url, conf)
+		if err != nil {
+			return nil, err
+		}
+
+		priceData, invalidSymbols, err := parseResp(data)
+		if err != nil && len(invalidSymbols) > 0 {
+			log.Println("retrying, got symbols error", err)
+			opts0.Symbol = dropInvalidSymbols(opts0.Symbol, invalidSymbols)
+			continue
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		log.Printf("price response: %+v\n", priceData)
+
+		return priceData, nil
 	}
 
-	return parseResp(data)
+	return nil, errors.New("Too many errors")
 }
 
 func toQuery(opts PriceRequest) string {
@@ -58,14 +87,14 @@ func doGetReq(url string, conf config.Config) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func parseResp(data []byte) (PriceData, error) {
+func parseResp(data []byte) (PriceData, map[string]bool, error) {
 	resp := PriceResponse{}
 	if err := json.Unmarshal(data, &resp); err != nil {
-		return nil, err
+		return nil, map[string]bool{}, err
 	}
 
-	if err := hasError(resp); err != nil {
-		return nil, err
+	if invalidSymbols, err := hasError(resp); err != nil {
+		return nil, invalidSymbols, err
 	}
 
 	priceData := PriceData{}
@@ -83,13 +112,49 @@ func parseResp(data []byte) (PriceData, error) {
 		priceData[name] = coinPrices
 	}
 
-	return priceData, nil
+	return priceData, map[string]bool{}, nil
 }
 
-func hasError(resp PriceResponse) error {
+func hasError(resp PriceResponse) (map[string]bool, error) {
 	if resp.Status.ErrorCode == 0 {
-		return nil
+		return map[string]bool{}, nil
 	}
 
-	return errors.New(resp.Status.ErrorMessage)
+	return getInvalidSymbols(resp), errors.New(resp.Status.ErrorMessage)
+}
+
+func getInvalidSymbols(resp PriceResponse) map[string]bool {
+	if strings.HasPrefix(resp.Status.ErrorMessage, invalidSymbolsErrorPrefix) {
+		invalidSymbols := strings.TrimSuffix(
+			strings.TrimPrefix(resp.Status.ErrorMessage, invalidSymbolsErrorPrefix),
+			invalidSymbolsErrorSuffix,
+		)
+
+		invalidSymbolsMap := map[string]bool{}
+		for _, symbol := range strings.Split(invalidSymbols, ",") {
+			invalidSymbolsMap[symbol] = true
+		}
+
+		return invalidSymbolsMap
+	}
+
+	return map[string]bool{}
+}
+
+func dropInvalidSymbols(symbols []string, invalidSymbols map[string]bool) []string {
+	if len(invalidSymbols) == 0 {
+		return symbols
+	}
+
+	filtered := []string{}
+
+	for _, symbol := range symbols {
+		if _, ok := invalidSymbols[symbol]; ok {
+			continue
+		}
+
+		filtered = append(filtered, symbol)
+	}
+
+	return filtered
 }
