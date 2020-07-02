@@ -25,14 +25,25 @@ const (
 	csvFormat   string = "csv"
 
 	defaultFormat = plainFormat
+
+	contentTypeHeader = "Content-Type"
 )
 
-var header []string = []string{"RANK", "NAME", "FULLNAME", "PRICE", "CURRENCY"}
-var formatters map[string]FormaterFunc = map[string]FormaterFunc{
-	plainFormat: formatPlain,
-	jsonFormat:  formatJSON,
-	csvFormat:   formatCSV,
-}
+var (
+	header []string = []string{"RANK", "NAME", "FULLNAME", "PRICE", "CURRENCY"}
+
+	formatters map[string]FormaterFunc = map[string]FormaterFunc{
+		plainFormat: formatPlain,
+		jsonFormat:  formatJSON,
+		csvFormat:   formatCSV,
+	}
+
+	contentTypes map[string]string = map[string]string{
+		plainFormat: "text/plain",
+		jsonFormat:  "application/json",
+		csvFormat:   "text/csv",
+	}
+)
 
 func formatPlain(data []api.Data) (*bytes.Buffer, error) {
 	strs := []string{
@@ -100,6 +111,7 @@ func writeFormattedData(w http.ResponseWriter, format string, data []api.Data) e
 		return err
 	}
 
+	w.Header().Set(contentTypeHeader, contentTypes[format])
 	buf.WriteTo(w)
 
 	return nil
