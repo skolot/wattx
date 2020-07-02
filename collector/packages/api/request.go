@@ -69,14 +69,20 @@ func RequestPrice(opts PriceRequest, conf config.Config) (PriceResponse, error) 
 	query.Add(querySymbol, strings.Join(opts.Symbol, ","))
 	query.Add(queryConvert, strings.Join(opts.Convert, ","))
 
-	log.Printf("conf.API.PriceURL ? query.Encode(): %s\n", conf.API.PriceURL+"?"+query.Encode())
+	url := conf.API.PriceURL + "?" + query.Encode()
 
-	data, err := Request(opts, conf.API.PriceURL+"?"+query.Encode(), conf)
+	log.Printf("price request url: %s\n", url)
+
+	data, err := Request(opts, url, conf)
 	if err != nil {
 		return nil, err
 	}
 
-	return parsePriceResp(data)
+	priceData, err := parsePriceResp(data)
+
+	log.Printf("price response: %+v\n", priceData)
+
+	return priceData, err
 }
 
 func RequestRank(opts RankRequest, conf config.Config) ([]RankResponse, error) {
@@ -85,12 +91,20 @@ func RequestRank(opts RankRequest, conf config.Config) ([]RankResponse, error) {
 	query.Add(queryPage, strconv.Itoa(opts.Page))
 	query.Add(queryTSYM, opts.TSYM)
 
-	data, err := Request(opts, conf.API.TopURL+"?"+query.Encode(), conf)
+	url := conf.API.TopURL + "?" + query.Encode()
+
+	log.Printf("rank request url: %s\n", url)
+
+	data, err := Request(opts, url, conf)
 	if err != nil {
 		return nil, err
 	}
 
-	return parseRankResp(data)
+	rankData, err := parseRankResp(data)
+
+	log.Printf("rank response: %+v\n", rankData)
+
+	return rankData, err
 }
 
 func Request(opts interface{}, url string, conf config.Config) ([]byte, error) {
