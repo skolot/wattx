@@ -99,6 +99,7 @@ Sadly this option doesnt work in sandbox and API return error. Previous code tha
 
 # What to improve
 
+* Better validation for incoming query parameters
 * Better error handling between internal and foreign services
 * Move all reusable code to library
 * Cover error situation in tests
