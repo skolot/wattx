@@ -16,24 +16,28 @@ WATTx Code Challenges
 
 to start application run next command in root of repository
 
-``` $ make start
+```
+$ make start
 ```
 
 to stop
 
-``` $ make stop
+```
+$ make stop
 ```
 
 alternatively you can use docker-compose directly
 
 start
 
-``` $ docker-compose up --build --detach
+```
+$ docker-compose up --build --detach
 ```
 
 stop
 
-``` $ docker-compose down
+```
+$ docker-compose down
 ```
 
 ## Services
@@ -50,7 +54,8 @@ HTTP API support next query parameters<br>
 
 example:
 
-``` $ curl "http://localhost:2525?format=plain&limit=10" 
+```
+$ curl "http://localhost:2525?format=plain&limit=10" 
 RANK	NAME	FULLNAME	PRICE	CURRENCY
 1	BTC	Bitcoin	9558.551758	USD
 2	ETH	Ethereum	168.688629	USD
@@ -74,7 +79,8 @@ Cons of this method - we can't be certain what component cause error.<br>
 
 Tests run with next command
 
-```$ make test
+```
+$ make test
 ```
 
 or manualy
