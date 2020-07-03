@@ -8,6 +8,10 @@ WATTx Code Challenges
 * docker + docker-compose
 * make
 
+### GoLang dependicies
+* github.com/jinzhu/configor - configuaration utility, that support setting config from shell enviropment
+* github.com/stretchr/testify/require - assertion library for tests
+
 ## Start/Stop application
 
 to start application run next command in root of repository
@@ -41,8 +45,8 @@ stop
 
 Application bind http://127.0.0.1:2525 by default.<br>
 HTTP API support next query parameters<br>
-* limit - count of line to output, (default 200)
-* format - output formats, can be plain, csv or json, (default plain)
+* limit - count of output lines (default 200)
+* format - output formats, can be plain, csv or json (default plain)
 
 example:
 
@@ -60,7 +64,35 @@ RANK	NAME	FULLNAME	PRICE	CURRENCY
 10	EOS	EOS	3.215316	USD
 ```
 
+# Tests
+
+For application testing I decided to use intergarion tests.<br>
+Pros - we want check result, if some of components doesn't work properly test will fail.<br>
+Cons of this method - we can't be certain what component cause error.<br>
+
+## Run tests
+
+Tests run with next command
+
+```$ make test
+```
+
+or manualy
+
+```
+$ cd test
+$ docker-compose -p wattx_test -f ../docker-compose-test.yml up --build --detach
+$ go test -v -count=1 main_test.go
+$ docker-compose -p wattx_test -f ../docker-compose-test.yml down
+```
+
 # Problem and solution
 
-Sometimes CoinMarketCap return invalid symbols for some values. To avoid it I pass option 'skip_invalid' to CoinMarketCap.
-Sadly this opetion doesnt work in sandbox. Previous code that handle this error for sandbox can be found in commit e5a39091472b617f4cb2990336c81f8d47cbd0d1
+Sometimes CoinMarketCap return error for some symbol values. To avoid it I pass option 'skip_invalid' to CoinMarketCap.
+Sadly this option doesnt work in sandbox and API return error. Previous code that handle this error for sandbox can be found in commit e5a39091472b617f4cb2990336c81f8d47cbd0d1
+
+# What to improve
+
+* Better error handling between internal and foreign services
+* Move all reusable code to library
+* Cover error situation in tests
