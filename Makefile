@@ -7,10 +7,10 @@ stop:
 	docker-compose down
 
 test-start:
-	COMPOSE_PROJECT_NAME=wattx_test docker-compose -f docker-compose-test.yml up --build --detach
+	docker-compose -p wattx_test -f docker-compose-test.yml up --build --detach
 
 test-stop:
-	COMPOSE_PROJECT_NAME=wattx_test docker-compose -f docker-compose-test.yml down
+	docker-compose -p wattx_test -f docker-compose-test.yml down
 
 test: test-start run-test test-stop
 
