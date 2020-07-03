@@ -1,53 +1,55 @@
 version: "3.7"
 services:
 
-    cctop:
+    cctop_test:
         build:
             context: ./cctop
             dockerfile: ../Dockerfile
         ports:
-            - "127.0.0.1:2323:2323"
+            - "127.0.0.1:12323:2323"
         expose:
             - "2323"
         environment:
             - CONFIGOR_HTTPSRV_HOST=0.0.0.0
+            - CONFIGOR_API_URL=http://host.docker.internal:12222/data/top/totaltoptiervolfull
         networks:
-            - wattx_cc
+            - wattx_cc_test
 
-    cmcprices:
+    cmcprices_test:
         build:
             context: ./cmcprices
             dockerfile: ../Dockerfile
         ports:
-            - "127.0.0.1:2424:2424"
+            - "127.0.0.1:12424:2424"
         expose:
             - "2424"
         environment:
             - CONFIGOR_HTTPSRV_HOST=0.0.0.0
+            - CONFIGOR_API_URL=http://host.docker.internal:12222/v1/cryptocurrency/quotes/latest
         networks:
-            - wattx_cc
+            - wattx_cc_test
 
-    collector:
+    collector_test:
         build:
             context: ./collector
             dockerfile: ../Dockerfile
         ports:
-            - "127.0.0.1:2525:2525"
+            - "127.0.0.1:12525:2525"
         expose:
             - "2525"
         environment:
             - CONFIGOR_HTTPSRV_HOST=0.0.0.0
-            - CONFIGOR_API_TOPURL=http://cctop:2323
-            - CONFIGOR_API_PRICEURL=http://cmcprices:2424
+            - CONFIGOR_API_TOPURL=http://cctop_test:2323
+            - CONFIGOR_API_PRICEURL=http://cmcprices_test:2424
         depends_on:
-            - cctop
-            - cmcprices
+            - cctop_test
+            - cmcprices_test
         links:
-            - "cctop:127.0.0.1"
-            - "cmcprices:127.0.0.1"
+            - "cctop_test:127.0.0.1"
+            - "cmcprices_test:127.0.0.1"
         networks:
-            - wattx_cc
+            - wattx_cc_test
 
 networks:
-  wattx_cc:
+  wattx_cc_test:
     driver: "bridge"
